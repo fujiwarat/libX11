@@ -794,6 +794,35 @@ _XimOpenCheck(
     return False;
 }
 
+static INT16
+_XimSetDisplayNumber(
+    Xim  		 im,
+    CARD8		*buf_b,
+    INT16		 len)
+{
+    const char *display_string =  DisplayString(im->core.display);
+    buf_b[len] = 0;
+    buf_b[len+1] = 0;
+
+    if (display_string && (display_string = strchr(display_string, ':')) != NULL) {
+	display_string++;
+	if (*display_string != '\0') {
+	    int number = atoi(display_string);
+	    buf_b[len] = (number < 0) ? 0 : (number % 256);
+	    display_string++;
+	    if ((display_string = strchr(display_string, '.')) != NULL) {
+		display_string++;
+		if (*display_string != '\0') {
+		    number = atoi(display_string);
+		    buf_b[len+1] = (number < 0) ? 0 : (number % 256);
+		}
+	    }
+	}
+    }
+
+    return sizeof(CARD8) * 2;
+}
+
 static Bool
 _XimOpen(
     Xim			 im)
@@ -803,6 +832,7 @@ _XimOpen(
     CARD8		*buf_b = &buf[XIM_HEADER_SIZE];
     CARD16		*buf_s;
     INT16		 len;
+    INT16		 version_len;
     CARD32		 reply32[BUFSIZE/4];
     char		*reply = (char *)reply32;
     XPointer		 preply;
@@ -816,6 +846,8 @@ _XimOpen(
     (void)strcpy((char *)&buf_b[1], locale_name);  /* locale name */
     len += sizeof(BYTE);			   /* sizeof length */
     XIM_SET_PAD(buf_b, len);			   /* pad */
+    version_len = _XimSetDisplayNumber(im, buf_b, len);
+    len += (version_len + XIM_PAD(version_len));
 
     _XimSetHeader((XPointer)buf, XIM_OPEN, 0, &len);
     if (!(_XimWrite(im, len, (XPointer)buf)))

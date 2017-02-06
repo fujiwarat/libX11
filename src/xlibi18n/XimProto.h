@@ -47,7 +47,7 @@ PERFORMANCE OF THIS SOFTWARE.
  * Xim implementation revision
  */
 #define PROTOCOLMAJORVERSION		1
-#define PROTOCOLMINORVERSION		0
+#define PROTOCOLMINORVERSION		1
 
 /*
  * Major Protocol number
